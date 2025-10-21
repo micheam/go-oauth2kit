@@ -1,0 +1,46 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"golang.org/x/oauth2/google"
+
+	"github.com/micheam/go-oauth2kit"
+)
+
+func main() {
+	config := oauth2kit.Config{
+		ClientID:     os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+		Endpoint:     google.Endpoint,
+		Scopes:       []string{"email", "profile"},
+		TokenFile:    "token.json",
+	}
+
+	manager := &oauth2kit.Manager{
+		Config: config,
+	}
+
+	// Get OAuth2 client with automatic token management
+	client, err := manager.NewOAuth2Client(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Use the client for authenticated requests
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v1/userinfo")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	var userInfo map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("User Info: %+v\n", userInfo)
+}
