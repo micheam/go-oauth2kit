@@ -1,4 +1,4 @@
-# go-oauth2kit
+# go-oauth2kit [![Go](https://github.com/micheam/go-oauth2kit/actions/workflows/go.yml/badge.svg)](https://github.com/micheam/go-oauth2kit/actions/workflows/go.yml)
 
 A Go library that simplifies OAuth2 authentication flow with built-in token management and local callback server support.
 
