@@ -50,7 +50,7 @@ func (m *Manager) NewOAuth2Client(ctx context.Context) (*http.Client, error) {
 
 func (m *Manager) GetToken(ctx context.Context) (*oauth2.Token, error) {
 	if m.LoggerRepository == nil {
-		m.LoggerRepository = &NopLoggerRepository{}
+		m.LoggerRepository = &StandardLoggerRepository{}
 	}
 	logger := m.LoggerFromContext(ctx)
 
@@ -172,14 +172,14 @@ type LoggerRepository interface {
 	ContextWithLogger(ctx context.Context, logger *slog.Logger) context.Context
 }
 
-type NopLoggerRepository struct{}
+type StandardLoggerRepository struct{}
 
-func (r *NopLoggerRepository) LoggerFromContext(ctx context.Context) *slog.Logger {
-	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+func (r *StandardLoggerRepository) LoggerFromContext(ctx context.Context) *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 }
 
-func (r *NopLoggerRepository) ContextWithLogger(ctx context.Context, logger *slog.Logger) context.Context {
-	panic("not implemented")
+func (r *StandardLoggerRepository) ContextWithLogger(ctx context.Context, logger *slog.Logger) context.Context {
+	return ctx // No-op for standard implementation
 }
 
 // ----------------------------------------------------------------------------
