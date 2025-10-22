@@ -26,7 +26,9 @@ type Manager struct {
 	// If nil, no logging is performed.
 	LoggerRepository
 
-	w io.Writer
+	// Writer specifies the output writer for informational messages.
+	// If nil, os.Stdout is used.
+	Writer io.Writer
 }
 
 const (
@@ -51,9 +53,9 @@ func (m *Manager) NewOAuth2Client(ctx context.Context) (*http.Client, error) {
 	return oauth2.NewClient(ctx, ts), nil
 }
 
-func (m *Manager) Writer() io.Writer {
-	if m.w != nil {
-		return m.w
+func (m *Manager) GetWriter() io.Writer {
+	if m.Writer != nil {
+		return m.Writer
 	}
 	return os.Stdout
 }
@@ -128,14 +130,14 @@ func (m *Manager) GetToken(ctx context.Context) (*oauth2.Token, error) {
 		fmt.Println("Opening browser for authentication...")
 		if err := openURL(authURL); err != nil {
 			logger.Warn("Failed to open browser: " + err.Error())
-			fmt.Fprintf(m.Writer(), "Please open the following URL in your browser:\n%s\n", authURL)
+			fmt.Fprintf(m.GetWriter(), "Please open the following URL in your browser:\n%s\n", authURL)
 		}
 
 		// Wait for authorization code
 		var authCode string
 		select {
 		case authCode = <-codeChan:
-			fmt.Fprintln(m.Writer(), "\n✓ Authorization code received")
+			fmt.Fprintln(m.GetWriter(), "\n✓ Authorization code received")
 		case err := <-errorChan:
 			logger.Error("Error during authorization: " + err.Error())
 		case <-time.After(5 * time.Minute):
@@ -150,7 +152,7 @@ func (m *Manager) GetToken(ctx context.Context) (*oauth2.Token, error) {
 		}
 
 		// Exchange authorization code for token with PKCE verifier
-		fmt.Fprintln(m.Writer(), "Exchanging authorization code for token...")
+		fmt.Fprintln(m.GetWriter(), "Exchanging authorization code for token...")
 		token, err := m.oauth2ConfigOAuth2().Exchange(ctx, authCode, oauth2.VerifierOption(verifier))
 		if err != nil {
 			return nil, fmt.Errorf("token exchange: %w", err)
