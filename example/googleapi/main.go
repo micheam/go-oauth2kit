@@ -42,5 +42,11 @@ func main() {
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("User Info: %+v\n", userInfo)
+
+	// Print user info as JSON
+	userInfoJSON, err := json.MarshalIndent(userInfo, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(userInfoJSON))
 }
