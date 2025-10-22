@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -118,7 +117,7 @@ func (m *Manager) GetToken(ctx context.Context) (*oauth2.Token, error) {
 		// Open browser to authorization URL
 		fmt.Println("Opening browser for authentication...")
 		if err := openURL(authURL); err != nil {
-			log.Printf("Failed to open browser: %v", err)
+			logger.Warn("Failed to open browser: " + err.Error())
 			fmt.Printf("Please open the following URL in your browser:\n%s\n", authURL)
 		}
 
@@ -128,16 +127,16 @@ func (m *Manager) GetToken(ctx context.Context) (*oauth2.Token, error) {
 		case authCode = <-codeChan:
 			fmt.Println("\n✓ Authorization code received")
 		case err := <-errorChan:
-			log.Fatalf("Error receiving authorization: %v", err)
+			logger.Error("Error during authorization: " + err.Error())
 		case <-time.After(5 * time.Minute):
-			log.Fatal("Timeout waiting for authorization")
+			logger.Error("Timeout waiting for authorization code")
 		}
 
 		// Shutdown the server
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		if err := server.Shutdown(ctx); err != nil {
-			log.Printf("Server shutdown error: %v", err)
+			logger.Error("Server shutdown error: " + err.Error())
 		}
 
 		// Exchange authorization code for token with PKCE verifier
