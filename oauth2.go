@@ -50,6 +50,22 @@ func (m *Manager) NewOAuth2Client(ctx context.Context) (*http.Client, error) {
 		return nil, err
 	}
 	ts := m.TokenSource(ctx, token)
+
+	// Force token validation and refresh if expired
+	validToken, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("validate/refresh token: %w", err)
+	}
+
+	// Save refreshed token if it changed
+	if validToken.AccessToken != token.AccessToken {
+		if err := store(m.Config.TokenFile, validToken); err != nil {
+			// Log warning but don't fail the request
+			logger := m.LoggerFromContext(ctx)
+			logger.Warn("Failed to save refreshed token: " + err.Error())
+		}
+	}
+
 	return oauth2.NewClient(ctx, ts), nil
 }
 
