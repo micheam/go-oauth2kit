@@ -64,7 +64,7 @@ func (m *Manager) NewOAuth2Client(ctx context.Context) (*http.Client, error) {
 		if err := store(m.Config.TokenFile, validToken); err != nil {
 			// Log warning but don't fail the request
 			logger := m.LoggerFromContext(ctx)
-			logger.Warn("Failed to save refreshed token: " + err.Error())
+			logger.Warn(fmt.Sprintf("Failed to save refreshed token to %s: %v", m.Config.TokenFile, err))
 		}
 	}
 
