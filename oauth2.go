@@ -58,7 +58,9 @@ func (m *Manager) NewOAuth2Client(ctx context.Context) (*http.Client, error) {
 	}
 
 	// Save refreshed token if it changed
-	if validToken.AccessToken != token.AccessToken {
+	if validToken.AccessToken != token.AccessToken ||
+		validToken.RefreshToken != token.RefreshToken ||
+		!validToken.Expiry.Equal(token.Expiry) {
 		if err := store(m.Config.TokenFile, validToken); err != nil {
 			// Log warning but don't fail the request
 			logger := m.LoggerFromContext(ctx)
